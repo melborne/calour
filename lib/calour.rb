@@ -9,7 +9,7 @@ class Calour
   attr_accessor :colors
 
   def initialize(opts={})
-    @colors = {title: :green, today: :green, saturday: :cyan, sunday: :magenta}
+    @colors = {title: [:green,:yellow], today: :green, saturday: :cyan, sunday: :magenta}
     opts.keep_if { |k, v| colors.keys.include? k }
     colors.update(opts)
   end
@@ -19,9 +19,7 @@ class Calour
     rdtout, rdterr = redirect_system_out { "cal #{args.join(' ')}" }
     @calendar, err = [rdtout, rdterr].map { |io| io.open.read }
     raise ArgumentError, err unless err.empty?
-    cal = colorize_calendar(args[0])
-    puts cal
-    cal
+    colorize_calendar(args[0])
   ensure
     [rdtout, rdterr].map { |io| io.close if io }
   end
@@ -54,12 +52,12 @@ class Calour
   end
 
   def colorize_title
+    wd, year = colors[:title]
     @calendar =
       @calendar.lines.inject("") do |cal, line|
-        if title_line?(line)
-          line.gsub!(/(#{WD.join("|")})\w*(?=\b)/) {
-              "<#{colors[:title]}>#{$&}</#{colors[:title]}>"
-          }
+        if title_line?(line) || year_line?(line)
+          line.gsub!(/(#{WD.join("|")})\w*(?=\b)/) { "<#{wd}>#{$&}</#{wd}>" }
+          line.gsub!(/\d{4}/) { "<#{year}>#{$&}</#{year}>"}
         end
         cal << line
       end
@@ -68,7 +66,11 @@ class Calour
   def title_line?(line)
     line =~ /#{WD.join("|")}/
   end
-
+  
+  def year_line?(line)
+    line =~ /\b\d{4}\b/
+  end
+  
   def colorize_weekend(opts)
     unit_width = 22
     opts = opts.sort_by { |_, v| -v }

@@ -2,4 +2,4 @@
 #-*-encoding: utf-8-*-
 require_relative "../lib/calour"
 
-Calour.new.cal *ARGV.map(&:to_i)
+puts Calour.new.cal *ARGV.map(&:to_i)
