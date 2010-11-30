@@ -14,11 +14,11 @@ class Calour
   end
 
   def cal(*args)
-    args = parse_argument(args)
-    rdtout, rdterr = redirect_system_out { "cal #{args.join(' ')}" }
+    @mon, @year = parse_argument(args)
+    rdtout, rdterr = redirect_system_out { "cal #{@mon} #{@year}" }
     @calendar, err = [rdtout, rdterr].map { |io| io.open.read }
     raise ArgumentError, err unless err.empty?
-    colorize_calendar(args[0])
+    colorize_calendar
   ensure
     [rdtout, rdterr].map { |io| io.close if io }
   end
@@ -26,11 +26,15 @@ class Calour
   
   private
   def parse_argument(args)
-    args.sort!
-    if args.size == 1 && args[0] < 100
-      args << Time.now.year
+    mon, year = args.sort
+    if !mon.nil? && year.nil?
+      if mon >= 100
+        year, mon = mon, year
+      else
+        year = Time.now.year
+      end
     end
-    args
+    return mon, year
   end
 
   def redirect_system_out
@@ -43,10 +47,11 @@ class Calour
     return rdtout, rdterr
   end
 
-  def colorize_calendar(is_year)
-    colorize_weekend(:sunday => 0, :saturday => 18)
-    colorize_today(is_year)
+  def colorize_calendar
+    colorize_weekend(:sunday => 0, :saturday => 18) # this colorize must be first.
+    colorize_today
     colorize_title
+    colorize_holiday
     @calendar.termcolor
   end
 
@@ -88,10 +93,10 @@ class Calour
       end
   end
 
-  def colorize_today(is_year)
+  def colorize_today
     t = Time.now
     if [/#{t.year}/, /#{t.strftime("%b")}/].all? { |e| @calendar =~ e }
-      n = is_year == t.year ? count_nth(t) : 1 # detect monthly or yearly calendar
+      n = @year ? count_nth(t) : 1
       pos = -1
       n.times { pos = @calendar.index(/#{t.day}/, pos+1) }
       @calendar[pos, 2] = "<on_#{colors[:today]}>#{t.day}</on_#{colors[:today]}>"
@@ -99,6 +104,7 @@ class Calour
     @calendar
   end
 
+  # calculate position of the target date in a yearly calendar
   def count_nth(date)
     mindex = ->obj{ obj.index(date.mon).next  }
     case date.day
@@ -111,6 +117,13 @@ class Calour
     else
       date.mon
     end
+  end
+  
+  @@url = "http://www.google.com/calendar/feeds/
+                japanese@holiday.calendar.google.com/public/full?"
+
+  def colorize_holiday
+    
   end
 end
 

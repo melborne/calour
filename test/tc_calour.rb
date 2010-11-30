@@ -6,6 +6,7 @@ require_relative "../lib/calour"
 class TestCal < Test::Unit::TestCase
   def setup
     @c = Calour.new
+    @t = Time.now
   end
 
   def test_argument_variation
@@ -28,5 +29,28 @@ class TestCal < Test::Unit::TestCase
     c = Calour.new(:hello => :orange, :title => :blue)
     expected = {:title=>:blue, :today=>:green, :saturday=>:cyan, :sunday=>:magenta}
     assert_equal(expected, c.colors)
+  end
+
+  def test_color_today
+    c = Calour.new(:today => :blue)
+    assert_match(/\e\[42m#{@t.day}\e\[0m/, @c.cal)
+    assert_match(/\e\[44m#{@t.day}\e\[0m/, c.cal)
+  end
+
+  def test_color_weekend
+    sat = ((6 - @t.wday) + @t.day)%7
+    sun = ((0 - @t.wday) + @t.day)%7 + 7
+    assert_match(/\e\[36m #{sat}\e\[0m/, @c.cal)
+    assert_match(/\e\[35m #{sun}\e\[0m/, @c.cal)
+  end
+
+  def test_color_title
+    month = @t.strftime("%B")
+    assert_match(/\e\[32m#{month}\e\[0m/, @c.cal)
+    assert_match(/\e\[32mAugust\e\[0m/, @c.cal(8, 2000))
+  end
+
+  def test_color_holiday
+    assert_match(/\e\[31m23\e\[0m/, @c.cal(12))
   end
 end
