@@ -212,20 +212,3 @@ class Calour
     h
   end
 end
-
-__END__
-http://www.google.com/calendar/feeds/
-japanese@holiday.calendar.google.com/public/full
-?start-min=2007-01-01&start-max=2008-01-01
-
-−1      一つの月だけを出力する (これがデフォルトである)。
-
-  −3      先月/今月/来月 形式で出力する。
-
-  −s      日曜日を週の最初の曜日にする (これがデフォルトである)。
-
-  −m      月曜日を週の最初の曜日にする。
-
-  −j      ユリウス日付 (1 月 1 日を第 1 日とする年間通算日) を表示する。
-
-  −y      今年のカレンダーを表示する。
