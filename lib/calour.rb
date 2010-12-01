@@ -112,42 +112,49 @@ class Calour
 
   def colorize_specific_days(targets)
     color, on = set_color_mode(targets)
-
     if @month.nil?
-      targets.each do |date, name|
-        mon = WD[date.mon-1]
-        start, side = false, nil
-        @calendar =
-          @calendar.lines.inject("") do |mem, line|
-            if mpos = line.index(mon) # set a position of target month title
-              side = detect_target_column(mpos, line) # select target column from mpos
-              start = true
-            end
-            
-            # find a target date position in the target column
-            # for lines after month title
-            if start
-              left, right = calc_range(side, line)
-              pos = line.index(/(?<=\D)#{date.day}\D/, left)
-              if pos && pos < right
-                line[pos, date.day.to_s.size] = 
-                          "<#{on}#{color}>#{date.day}</#{on}#{color}>"
-                start, side = false, nil
-              end
-            end
-            mem << line
-          end
-      end
+      colorize_yearly(targets, color, on)
     else
-      targets.each do |date, name|
-        next unless date.mon == @month
-        day = date.day
-        pos = @calendar.index(/(?<=\D)#{day}\D/)
-        @calendar[pos, day.to_s.size] =
-            "<#{on}#{color}>#{day}</#{on}#{color}>"
-      end
+      colorize_monthly(targets, color, on)
     end
     @calendar
+  end
+
+  def colorize_yearly(targets, color, on)
+    targets.each do |date, name|
+      next if name == :today && @year != date.year
+      mon = WD[date.mon-1]
+      start, side = false, nil
+      @calendar =
+        @calendar.lines.inject("") do |mem, line|
+          if mpos = line.index(mon) # set a position of target month title
+            side = detect_target_column(mpos, line) # select target column from mpos
+            start = true
+          end
+          
+          # find a target date position in the target column
+          # for lines after month title
+          if start
+            left, right = calc_range(side, line)
+            pos = line.index(/(?<=\D)#{date.day}\D/, left)
+            if pos && pos < right
+              line[pos, date.day.to_s.size] = 
+                          "<#{on}#{color}>#{date.day}</#{on}#{color}>"
+              start, side = false, nil
+            end
+          end
+          mem << line
+        end
+    end
+  end
+
+  def colorize_monthly(targets, color, on)
+    targets.each do |date, name|
+      next unless date.mon == @month
+      day = date.day
+      pos = @calendar.index(/(?<=\D)#{day}\D/)
+      @calendar[pos, day.to_s.size] = "<#{on}#{color}>#{day}</#{on}#{color}>"
+    end
   end
 
   def set_color_mode(targets)
