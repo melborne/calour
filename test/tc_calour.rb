@@ -7,6 +7,7 @@ class TestCal < Test::Unit::TestCase
   def setup
     @c = Calour.new
     @t = Time.now
+    @holidays2011 = [[1, 1], [1, 10], [2, 11], [3, 21], [4, 29], [5, 3], [5, 4], [5, 5], [7, 18], [9, 19], [9, 23], [10, 10], [11, 3], [11, 23], [12, 23]]
   end
 
   def test_argument_variation
@@ -49,19 +50,23 @@ class TestCal < Test::Unit::TestCase
     assert_match(/\e\[32m#{month}\e\[0m/, @c.cal)
     assert_match(/\e\[32mAugust\e\[0m/, @c.cal(8, 2000))
   end
-
+  
   def test_color_specific_days_for_monthly_calendar
-    today = Time.now
-    holidays = [[1, 1], [1, 10], [2, 11], [3, 21], [4, 29], [5, 3], [5, 4], [5, 5], [7, 18], [9, 19], [9, 23], [10, 10], [11, 3], [11, 23], [12, 23]]
-    assert_match(/\e\[42m#{today.day}\e\[0m/, @c.cal)
-    holidays.each do |mon, day|
+    assert_match(/\e\[42m#{@t.day}\e\[0m/, @c.cal)
+    @holidays2011.each do |mon, day|
       assert_match(/\e\[31m#{day}\e\[0m/, @c.cal(mon, 2011))
     end
   end
 
   def test_color_specific_days_for_yearly_calendar
-    today = Time.now
-    holidays = [[1, 1], [1, 10], [2, 11], [3, 21], [4, 29], [5, 3], [5, 4], [5, 5], [7, 18], [9, 19], [9, 23], [10, 10], [11, 3], [11, 23], [12, 23]]
     puts @c.cal(2011)
+    puts @c.cal()
+  end
+
+  def test_holiday_option
+    puts Calour.new(holiday_opt: {country: :ja}).cal
+    puts Calour.new(holiday_opt: {country: :us, verbose:true}).cal
+    puts Calour.new(holiday_opt: {country: :au, verbose:true}).cal(2012)
+    puts Calour.new(holiday_opt: {country: :ja_ja, verbose:true}).cal(5, 2013)
   end
 end

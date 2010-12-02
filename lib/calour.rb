@@ -1,15 +1,16 @@
 #-*-encoding: utf-8-*-
-require 'tempfile'
-require 'termcolor'
-require "open-uri"
-require "nokogiri"
+%w(tempfile termcolor open-uri nokogiri cgi).each { |lib| require lib }
 
 class Calour
   WD = %w(January February March April May June July August September October November December)
-  attr_accessor :colors
+  attr_accessor :colors, :holiday_opt
 
   def initialize(opts={})
-    @colors = {title: [:green,:yellow], today: :green, saturday: :cyan, sunday: :magenta, :holiday => :red}
+    @holiday_opt = {country: false, verbose: false}
+    if hopt = opts.delete(:holiday_opt)
+      holiday_opt.update(hopt)
+    end
+    @colors = {title: [:green,:yellow], today: :green, saturday: :cyan, sunday: :magenta, holiday: :red}
     opts.keep_if { |k, v| colors.keys.include? k }
     colors.update(opts)
   end
@@ -25,6 +26,7 @@ class Calour
   end
   
   private
+
   def parse_argument(args)
     mon, year = args.sort
     if mon.nil? && year.nil?
@@ -62,7 +64,10 @@ class Calour
         mem << line
       end
     colorize_specific_days(today)
-    colorize_specific_days(holidays)
+    if COUNTRY_ID(holiday_opt[:country])
+      colorize_specific_days(ho=holidays)
+      print_holiday_titles(ho) if holiday_opt[:verbose]
+    end
     @calendar.termcolor
   end
 
@@ -183,14 +188,35 @@ class Calour
     end
   end
 
-  # use Google Calendar Data API
-  def get_holidays #TODO: use local db for keeping data
-    open URL() + PARAM(*build_date_range)
+  def print_holiday_titles(ho)
+    ho.sort_by { |date, _| date }
+      .each_with_object(@calendar).with_index do |((date, name), mem), i|
+          d = date.strftime("%b%e")
+          c1, c2 = colors[:title]
+          mem << "<#{c2}>#{d}</#{c2}>: <#{c1}>#{name}</#{c1}> "
+          mem << "\n" if (i.next%3).zero? || !@month.nil?
+       end
   end
 
-  def URL
-    "http://www.google.com/calendar/feeds" +
-                "/japanese@holiday.calendar.google.com/public/full?"
+  # use Google Calendar Data API
+  def get_holidays #TODO: use local db for keeping data
+    open URL(holiday_opt[:country]) + PARAM(*build_date_range)
+  rescue => e
+    STDERR.puts "Failed to retrieve Holiday data by Google Calendar Data API. #{e}"
+  end
+
+  def URL(country)
+    "http://www.google.com/calendar/feeds/" +
+            CGI.escape("#{COUNTRY_ID(country)}") + "/public/full-noattendees?"
+  end
+
+  def COUNTRY_ID(country)
+    {
+      ja: 'japanese@holiday.calendar.google.com',
+      ja_ja: 'ja.japanese#holiday@group.v.calendar.google.com',
+      us: 'usa__en@holiday.calendar.google.com',
+      au: 'australian__en@holiday.calendar.google.com'
+     }[country]
   end
 
   def PARAM(sd, ed)
