@@ -211,11 +211,20 @@ class Calour
   end
 
   def COUNTRY_ID(country)
+    base1 = "@holiday.calendar.google.com"
+    base2 = "#holiday@group.v.calendar.google.com"
     {
-      ja: 'japanese@holiday.calendar.google.com',
-      ja_ja: 'ja.japanese#holiday@group.v.calendar.google.com',
-      us: 'usa__en@holiday.calendar.google.com',
-      au: 'australian__en@holiday.calendar.google.com'
+      ja: "japanese#{base1}",
+      us: "usa__en#{base1}",
+      au: "australian__en#{base1}",
+      ja_ja: "ja.japanese#{base2}",
+      cn: "en.china#{base2}",
+      fr: "en.french#{base2}",
+      de: "en.german#{base2}",
+      it: "en.italian#{base2}",
+      kr: "en.south_korea#{base2}",
+      tw: "en.taiwan#{base2}",
+      gb: "en.uk#{base2}"
      }[country]
   end
 
