@@ -72,15 +72,15 @@ class Calour
   end
 
   def title?
-    ->l{ l =~ /#{WD.join("|")}/ }
+    /#{WD.join("|")}/
   end
   
   def year?
-    ->l{ l =~ /\d{4}/ }
+    /\d{4}/
   end
 
   def dates?
-    ->l{ l =~ /^\s*\d{1,2}\D/ }
+    /^\s*\d{1,2}\D/
   end
 
   def colorize_title(line, wd, year)

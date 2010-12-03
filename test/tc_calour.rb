@@ -52,9 +52,10 @@ class TestCal < Test::Unit::TestCase
   end
   
   def test_color_specific_days_for_monthly_calendar
-    assert_match(/\e\[42m#{@t.day}\e\[0m/, @c.cal)
+    c = Calour.new(holiday_opt: {country: :ja_ja})
+    assert_match(/\e\[42m#{@t.day}\e\[0m/, c.cal)
     @holidays2011.each do |mon, day|
-      assert_match(/\e\[31m#{day}\e\[0m/, @c.cal(mon, 2011))
+      assert_match(/\e\[31m#{day}\e\[0m/, c.cal(mon, 2011))
     end
   end
 
